@@ -1,15 +1,29 @@
+
 {
+  "manifest_version": 3,
   "name": "Ad Remover",
-  "version": "1.0",
-  "description": "evl44 Adblocker",
-  "permissions": ["webRequest", "webRequestBlocking", "<all_urls>"],
+  "version": "2.0",
+  "description": "Ultimate Adblocker with YouTube support ⚡",
+  "permissions": ["declarativeNetRequest"],
+  "host_permissions": ["<all_urls>"],
   "background": {
-      "scripts": ["background.js"]
+    "service_worker": "background.js"
   },
+  "declarative_net_request": {
+    "rule_resources": [{
+      "id": "ads",
+      "enabled": true,
+      "path": "rules.json"
+    }]
+  },
+  "content_scripts": [{
+    "matches": ["*://*.youtube.com/*"],
+    "js": ["contentScript.js"],
+    "run_at": "document_start"
+  }],
   "icons": {
-      "16": "icons/16x16.png",
-      "48": "icons/48x48.png",
-      "128": "icons/128x128.png"
-  },
-  "manifest_version": 2
+    "16": "icons/16x16.png",
+    "48": "icons/48x48.png",
+    "128": "icons/128x128.png"
+  }
 }
