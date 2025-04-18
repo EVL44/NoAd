@@ -18,7 +18,7 @@ const observer = new MutationObserver(mutations => {
       const ad = document.querySelector(selector);
       if (ad) {
         ad.remove();
-        console.warn("got u twice.");
+        console.warn("got u twice haha.");
       } 
 
     });
