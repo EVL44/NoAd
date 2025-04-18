@@ -3,6 +3,7 @@ const observer = new MutationObserver(mutations => {
     // Remove video ads
     document.querySelectorAll('.video-ads, .ad-showing').forEach(element => {
       element.remove();
+      console.warn("got u lol.");
     });
   
     // Remove banner ads
@@ -15,7 +16,11 @@ const observer = new MutationObserver(mutations => {
     
     banners.forEach(selector => {
       const ad = document.querySelector(selector);
-      if (ad) ad.remove();
+      if (ad) {
+        ad.remove();
+        console.warn("got u twice.");
+      } 
+
     });
   
     // Skip ad overlay
@@ -33,6 +38,7 @@ const observer = new MutationObserver(mutations => {
     const video = document.querySelector('video');
     if (video) {
       video.currentTime = video.duration;
+      console.error(video)
       video.pause();
     }
   }
