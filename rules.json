@@ -124,5 +124,104 @@
       "urlFilter": "||quantserve.com^",
       "resourceTypes": ["script", "xmlhttprequest"]
     }
+  },
+  {
+    "id": 15,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": {
+      "urlFilter": "||adservice.google.com^",
+      "resourceTypes": ["script", "xmlhttprequest"]
+    }
+  },
+  {
+    "id": 16,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": {
+      "urlFilter": "||googletagmanager.com^",
+      "resourceTypes": ["script"]
+    }
+  },
+  {
+    "id": 17,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": {
+      "urlFilter": "||googletagservices.com^",
+      "resourceTypes": ["script"]
+    }
+  },
+  {
+    "id": 18,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": {
+      "urlFilter": "||securepubads.g.doubleclick.net^",
+      "resourceTypes": ["script"]
+    }
+  },
+  {
+    "id": 19,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": {
+      "urlFilter": "||advertising.com^",
+      "resourceTypes": ["script", "image"]
+    }
+  },
+  {
+    "id": 20,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": {
+      "urlFilter": "||adroll.com^",
+      "resourceTypes": ["script"]
+    }
+  },
+  {
+    "id": 21,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": {
+      "urlFilter": "||adsafeprotected.com^",
+      "resourceTypes": ["script"]
+    }
+  },
+  {
+    "id": 22,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": {
+      "urlFilter": "||pubmatic.com^",
+      "resourceTypes": ["script", "image"]
+    }
+  },
+  {
+    "id": 23,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": {
+      "urlFilter": "||revsci.net^",
+      "resourceTypes": ["script"]
+    }
+  },
+  {
+    "id": 24,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": {
+      "urlFilter": "||yieldmanager.com^",
+      "resourceTypes": ["script"]
+    }
+  },
+  {
+    "id": 25,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": {
+      "urlFilter": "||popcash.net^",
+      "resourceTypes": ["script"]
+    }
   }
 ]
