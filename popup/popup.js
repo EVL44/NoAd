@@ -1,54 +1,56 @@
-document.addEventListener('DOMContentLoaded', function() {
-    const onBtn = document.getElementById('on-btn');
-    const offBtn = document.getElementById('off-btn');
-    const toggleContainer = document.querySelector('.toggle-container');
-    let enabled = true;
+document.addEventListener('DOMContentLoaded', function () {
+    const statusToggle = document.getElementById('status-toggle');
+    const blockedCountEl = document.getElementById('blocked-count');
+    const totalBlockedCountEl = document.getElementById('total-blocked-count');
 
-    // Initialize state
-    chrome.storage.local.get(['enabled'], function(result) {
-        enabled = result.enabled !== undefined ? result.enabled : true;
-        updateButtonState();
+    // Load initial state and theme
+    chrome.storage.local.get(['adRemoverEnabled', 'adRemoverTheme'], function (result) {
+        const isEnabled = result.adRemoverEnabled !== undefined ? result.adRemoverEnabled : true;
+        statusToggle.checked = isEnabled;
+
+        const theme = result.adRemoverTheme || 'light'; // Default to light
+        document.body.classList.remove('theme-light', 'theme-dark');
+        document.body.classList.add(`theme-${theme}`);
     });
 
-    function updateButtonState() {
-        if(enabled) {
-            onBtn.classList.add('toggle-inactive');
-            offBtn.classList.add('toggle-active');
-            onBtn.classList.remove('toggle-active');
-            offBtn.classList.remove('toggle-inactive');
-        } else {
-            onBtn.classList.add('toggle-active');
-            offBtn.classList.add('toggle-inactive');
-            onBtn.classList.remove('toggle-inactive');
-            offBtn.classList.remove('toggle-active');
-        }
-    }
-
-    function toggleExtension(state) {
-        chrome.storage.local.set({ enabled: state }, () => {
+    statusToggle.addEventListener('change', function () {
+        const newState = statusToggle.checked;
+        chrome.storage.local.set({ adRemoverEnabled: newState }, () => {
             // Send message to background script
-            chrome.runtime.sendMessage({ action: state ? 'enable' : 'disable' });
-            
+            chrome.runtime.sendMessage({ action: newState ? 'enable' : 'disable' });
+
             // Update content scripts on active tabs
-            chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+            chrome.tabs.query({}, tabs => { // Query all tabs, not just active
                 tabs.forEach(tab => {
-                    chrome.tabs.sendMessage(tab.id, { 
-                        action: state ? 'enable' : 'disable' 
-                    });
+                    if (tab.id) {
+                        chrome.tabs.sendMessage(tab.id, {
+                            action: newState ? 'enable' : 'disable'
+                        }).catch(error => console.log(`Error sending message to tab ${tab.id}: ${error.message}. It might be a privileged page.`));
+                    }
                 });
             });
+            console.log(`Ad Remover ${newState ? 'enabled' : 'disabled'}`);
+        });
+    });
+
+    // Placeholder for fetching and displaying blocked counts
+    // You'll need to implement logic in your background script to track these
+    // and make them available to the popup.
+    function updateBlockedCounts() {
+        chrome.storage.local.get(['blockedThisPage', 'blockedTotal'], function(result) {
+            if (blockedCountEl) blockedCountEl.textContent = result.blockedThisPage || '0';
+            if (totalBlockedCountEl) totalBlockedCountEl.textContent = result.blockedTotal || 'N/A';
         });
     }
 
-    onBtn.addEventListener('click', () => {
-        enabled = true;
-        updateButtonState();
-        toggleExtension(true);
+    // Example: Listen for updates from background script (if you implement it)
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+        if (message.action === "updateCounts") {
+            if (blockedCountEl) blockedCountEl.textContent = message.blockedThisPage || '0';
+            if (totalBlockedCountEl) totalBlockedCountEl.textContent = message.blockedTotal || 'N/A';
+        }
     });
 
-    offBtn.addEventListener('click', () => {
-        enabled = false;
-        updateButtonState();
-        toggleExtension(false);
-    });
+    // Initial update
+    updateBlockedCounts();
 });

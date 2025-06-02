@@ -1,9 +1,8 @@
-
 {
   "manifest_version": 3,
-  "name": "Ad Remover",
-  "version": "2.2.1",
-  "description": "Ultimate Adblocker with YouTube support ⚡",
+  "name": "NoAd",
+  "version": "2.1.4",
+  "description": "Ultimate Adblocker with YouTube support ⚡. Blocks more ads, popups, and trackers.",
   "permissions": [
     "storage",
     "declarativeNetRequest",
@@ -22,7 +21,7 @@
     }]
   },
   "content_scripts": [{
-    "matches": ["*://*.youtube.com/*"],
+    "matches": ["*://*.youtube.com/*", "*://*.googleusercontent.com/youtube.com/1"],
     "js": ["contentScript.js"],
     "run_at": "document_start"
   }],

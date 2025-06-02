@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-T">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ad Remover Settings</title>
+    <link rel="stylesheet" href="options.css">
+</head>
+<body class="theme-light"> <div class="container">
+        <header class="header">
+            <img src="icons/128.png" alt="Ad Remover Icon" class="logo">
+            <h1>Ad Remover Settings</h1>
+        </header>
+
+        <section class="settings-section">
+            <h2>Appearance</h2>
+            <div class="setting-item">
+                <label for="theme-toggle">Theme:</label>
+                <div class="toggle-switch">
+                    <span class="theme-label light">Light</span>
+                    <input type="checkbox" id="theme-toggle" class="toggle-checkbox">
+                    <label for="theme-toggle" class="toggle-lever"></label>
+                    <span class="theme-label dark">Dark</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="settings-section">
+            <h2>Blocking Behavior</h2>
+            <div class="setting-item">
+                <label for="aggressive-mode-toggle">Aggressive Mode:</label>
+                <div class="toggle-switch">
+                    <input type="checkbox" id="aggressive-mode-toggle" class="toggle-checkbox">
+                    <label for="aggressive-mode-toggle" class="toggle-lever"></label>
+                </div>
+            </div>
+            <p class="setting-description">
+                Enables more intensive ad and tracker blocking. May affect site compatibility.
+            </p>
+        </section>
+
+        <section class="settings-section">
+            <h2>Language (Coming Soon)</h2>
+            <div class="setting-item">
+                <label for="language-select">Select Language:</label>
+                <select id="language-select" disabled>
+                    <option value="en">English</option>
+                    <option value="es">Español (Soon)</option>
+                    <option value="fr">Français (Soon)</option>
+                </select>
+            </div>
+             <p class="setting-description">
+                Language selection will be available in a future update.
+            </p>
+        </section>
+        
+        <div class="save-status" id="save-status"></div>
+
+    </div>
+    <script src="options.js"></script>
+</body>
+</html>

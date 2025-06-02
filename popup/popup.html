@@ -1,28 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="popup.css">
-        
-        <title> ad remove 🚫 </title>
-    </head>
-    <!-- Update popup.html body section -->
-    <body>
-        <div class="main">
-            <h1 class="title">Ad Remover</h1>
-            <p class="sub-tit">Block ads on any website</p>
-            
-            <div class="toggle-container">
-                <button class="toggle-btn" id="on-btn">ON</button>
-                <button class="toggle-btn" id="off-btn">OFF</button>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="popup.css">
+    <title>No Ad 🚫</title>
+</head>
+<body class="theme-light"> <div class="container">
+        <header class="header">
+            <img src="../icons/128.png" alt="Ad Remover Icon" class="logo">
+            <div>
+                <h1 class="title">No Ad</h1>
+                <p class="subtitle">Ads blocked. Peace restored.</p>
             </div>
-            
-            <div class="footer">
-                <a href="../options.html" id="settingsBtn">⚙️ Settings</a>
-                <a href="https://github.com/EVL44/ad-remover" target="_blank">View on GitHub</a>
+        </header>
+
+        <div class="toggle-section">
+            <p class="toggle-label">Extension Status:</p>
+            <div class="toggle-switch">
+                <input type="checkbox" id="status-toggle" class="toggle-checkbox">
+                <label for="status-toggle" class="toggle-lever"></label>
             </div>
         </div>
-        <script src="popup.js"></script>
-    </body>
+
+        <div class="stats-section">
+            <p>Blocked on this page: <span id="blocked-count">0</span></p>
+            <p>Total blocked: <span id="total-blocked-count">0</span></p>
+        </div>
+
+        <div class="footer">
+            <a href="../options.html" id="settingsBtn" class="footer-link" target="_blank">⚙️ Settings</a>
+            <a href="https://github.com/EVL44/Ad-Remover" target="_blank" class="footer-link">View on GitHub</a>
+        </div>
+    </div>
+    <script src="popup.js"></script>
+</body>
 </html>
