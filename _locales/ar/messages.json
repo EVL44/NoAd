@@ -1,0 +1,106 @@
+{
+  "extensionName": {
+    "message": "لا إعلانات",
+    "description": "اسم الإضافة."
+  },
+  "extensionDescription": {
+    "message": "مانع إعلانات فائق مع دعم يوتيوب ⚡. يحظر المزيد من الإعلانات والنوافذ المنبثقة وأدوات التتبع.",
+    "description": "وصف الإضافة."
+  },
+  "popupTitle": {
+    "message": "لا إعلانات",
+    "description": "عنوان النافذة المنبثقة."
+  },
+  "popupSubtitle": {
+    "message": "تم حظر الإعلانات. عاد الهدوء.",
+    "description": "العنوان الفرعي في النافذة المنبثقة."
+  },
+  "popupStatusLabel": {
+    "message": "حالة الإضافة:",
+    "description": "تسمية مفتاح تبديل الحالة في النافذة المنبثقة."
+  },
+  "popupBlockedOnPageLabel": {
+    "message": "المحظورة في هذه الصفحة:",
+    "description": "تسمية الإعلانات المحظورة في الصفحة الحالية."
+  },
+  "popupTotalBlockedLabel": {
+    "message": "إجمالي المحظورات (الجلسة):",
+    "description": "تسمية إجمالي الإعلانات المحظورة في الجلسة الحالية."
+  },
+  "popupSettingsLink": {
+    "message": "⚙️ الإعدادات",
+    "description": "نص رابط الإعدادات."
+  },
+  "popupViewOnGitHubLink": {
+    "message": "عرض على GitHub",
+    "description": "نص رابط مستودع GitHub."
+  },
+  "optionsTitle": {
+    "message": "إعدادات مانع الإعلانات",
+    "description": "عنوان صفحة الإعدادات."
+  },
+  "optionsAppearanceHeader": {
+    "message": "المظهر",
+    "description": "عنوان إعدادات المظهر."
+  },
+  "optionsThemeLabel": {
+    "message": "السمة:",
+    "description": "تسمية مفتاح تبديل السمة."
+  },
+  "optionsThemeLight": {
+    "message": "فاتح",
+    "description": "خيار السمة الفاتحة."
+  },
+  "optionsThemeDark": {
+    "message": "داكن",
+    "description": "خيار السمة الداكنة."
+  },
+  "optionsBlockingBehaviorHeader": {
+    "message": "سلوك الحظر",
+    "description": "عنوان إعدادات سلوك الحظر."
+  },
+  "optionsAggressiveModeLabel": {
+    "message": "الوضع العدواني:",
+    "description": "تسمية مفتاح تبديل الوضع العدواني."
+  },
+  "optionsAggressiveModeDescription": {
+    "message": "يُمكّن حظر الإعلانات وأدوات التتبع بشكل أكثر كثافة. قد يؤثر على توافق الموقع.",
+    "description": "وصف الوضع العدواني."
+  },
+  "optionsLanguageHeader": {
+    "message": "اللغة",
+    "description": "عنوان إعدادات اللغة."
+  },
+  "optionsLanguageSelectLabel": {
+    "message": "اختر اللغة:",
+    "description": "تسمية اختيار اللغة."
+  },
+  "optionsLanguageEnglish": {
+    "message": "الإنجليزية (English)",
+    "description": "خيار اللغة الإنجليزية."
+  },
+  "optionsLanguageArabic": {
+    "message": "العربية",
+    "description": "خيار اللغة العربية."
+  },
+  "optionsSaveStatusSuccess": {
+    "message": "تم حفظ الإعدادات!",
+    "description": "رسالة نجاح عند حفظ الإعدادات."
+  },
+  "optionsSaveStatusAggressiveEnabled": {
+    "message": "تم تفعيل الوضع العدواني.",
+    "description": "رسالة عند تفعيل الوضع العدواني."
+  },
+  "optionsSaveStatusAggressiveDisabled": {
+    "message": "تم تعطيل الوضع العدواني.",
+    "description": "رسالة عند تعطيل الوضع العدواني."
+  },
+  "optionsSaveStatusLanguage": {
+    "message": "تم حفظ تفضيل اللغة.",
+    "description": "رسالة عند حفظ تفضيل اللغة."
+  },
+  "popupNOLabel": {
+    "message": "غير متاح",
+    "description": "تسمية غير قابل للتطبيق"
+  }
+}

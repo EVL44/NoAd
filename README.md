@@ -1,8 +1,8 @@
-# 🔥 Ad Remover - Ultimate Adblock Extension & Youtube Killer
+# 🔥 NoAd - Ultimate Adblock Extension & Youtube Killer
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Chrome Web Store](https://img.shields.io/chrome-web-store/v/none?label=Chrome%20Version)](https://developer.chrome.com/docs/webstore/)
-![GitHub repo size](https://img.shields.io/github/repo-size/EVL44/Ad-Remover)
+![GitHub repo size](https://img.shields.io/github/repo-size/EVL44/NoAd)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
 
 **The most aggressive ad-blocker for Chrome that mercilessly destroys:**  
@@ -36,7 +36,7 @@
 
 ```bash
 # Clone the repo
-git clone https://github.com/EVL44/Ad-Remover.git
+git clone https://github.com/EVL44/NoAd.git
 
 # Load in Chrome:
 1. Enable Developer Mode at chrome://extensions
@@ -96,7 +96,7 @@ Distributed under MIT License. See LICENSE for more information.
 
 ## 📧 Contact
 Ad Remover Team - @EVL44
-Project Link: https://github.com/EVL44/Ad-Remover
+Project Link: https://github.com/EVL44/NoAd
 
 ## 🙏 Acknowledgments
 Inspired by uBlock Origin

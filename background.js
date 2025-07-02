@@ -1,16 +1,18 @@
 let extensionEnabled = true;
 let aggressiveMode = false;
+let totalBlockedThisSession = 0;
 
 function updateStoredSettings(callback) {
-    chrome.storage.local.get(['adRemoverEnabled', 'adRemoverAggressiveMode'], (result) => {
+    chrome.storage.local.get(['adRemoverEnabled', 'adRemoverAggressiveMode', 'adRemoverLanguage'], (result) => {
         extensionEnabled = result.adRemoverEnabled !== undefined ? result.adRemoverEnabled : true;
         aggressiveMode = result.adRemoverAggressiveMode === true;
+        // Language setting is mostly for UI, background doesn't directly use it for logic here
         if (callback) callback();
     });
 }
 
 function updateBlockingRulesState() {
-    const rulesetId = "ads"; // ID from manifest.json
+    const rulesetId = "ads"; 
 
     if (extensionEnabled) {
         chrome.declarativeNetRequest.updateEnabledRulesets({ enableRulesetIds: [rulesetId] })
@@ -23,7 +25,7 @@ function updateBlockingRulesState() {
     }
 }
 
-function notifyAllTabs(message) {
+function notifyAllTabsOfStateChange(message) {
     chrome.tabs.query({}, tabs => {
         tabs.forEach(tab => {
             if (tab.id && tab.url && !tab.url.startsWith('chrome://')) {
@@ -34,20 +36,35 @@ function notifyAllTabs(message) {
     });
 }
 
-// Initial setup: Called when extension is installed or updated, or browser starts
+// Initialize settings and counters on install/update
 chrome.runtime.onInstalled.addListener((details) => {
     if (details.reason === "install") {
         console.log("[Ad Remover BG] Installed.");
         chrome.storage.local.set({
             adRemoverEnabled: true,
             adRemoverTheme: 'light',
-            adRemoverAggressiveMode: false
+            adRemoverAggressiveMode: false,
+            adRemoverLanguage: navigator.language.split('-')[0] || 'en', // Default to browser lang or English
+            totalBlockedAdCount: 0,
+            currentPageAdCount: 0 // Initialize page count
         }, () => {
             updateStoredSettings(updateBlockingRulesState);
+            totalBlockedThisSession = 0; // Reset session counter on new install
         });
     } else if (details.reason === "update") {
         console.log("[Ad Remover BG] Updated to version " + chrome.runtime.getManifest().version);
-        updateStoredSettings(updateBlockingRulesState); // Ensure rules are correctly set after an update
+        // Preserve existing settings on update, but ensure counters are initialized if not present
+        chrome.storage.local.get(['totalBlockedAdCount', 'currentPageAdCount'], (result) => {
+            const update = {};
+            if (result.totalBlockedAdCount === undefined) update.totalBlockedAdCount = 0;
+            if (result.currentPageAdCount === undefined) update.currentPageAdCount = 0; // Though this is tab-specific
+            if (Object.keys(update).length > 0) chrome.storage.local.set(update);
+        });
+        updateStoredSettings(updateBlockingRulesState);
+        // Session counter might persist or reset depending on desired behavior. Let's reset it here.
+        totalBlockedThisSession = 0; 
+        chrome.storage.local.set({ totalBlockedAdCount: 0 });
+
     }
 });
 
@@ -55,54 +72,94 @@ chrome.runtime.onInstalled.addListener((details) => {
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     let settingsChangedForRules = false;
     let settingsChangedForContentScript = false;
+    let response = { status: "success", acknowledged: true };
 
     if (message.action === 'enable' || message.action === 'disable') {
         const newState = message.action === 'enable';
         if (extensionEnabled !== newState) {
             extensionEnabled = newState;
-            chrome.storage.local.set({ adRemoverEnabled: extensionEnabled }); // Persist
+            chrome.storage.local.set({ adRemoverEnabled: extensionEnabled });
             console.log(`[Ad Remover BG] Extension state changed to: ${extensionEnabled ? 'Enabled' : 'Disabled'}`);
             settingsChangedForRules = true;
-            settingsChangedForContentScript = true; // Content script also needs to know
+            settingsChangedForContentScript = true;
         }
     } else if (message.action === 'aggressiveModeChanged') {
         const newAggressiveState = message.aggressive;
         if (aggressiveMode !== newAggressiveState) {
             aggressiveMode = newAggressiveState;
-            chrome.storage.local.set({ adRemoverAggressiveMode: aggressiveMode }); // Persist
+            chrome.storage.local.set({ adRemoverAggressiveMode: aggressiveMode });
             console.log(`[Ad Remover BG] Aggressive mode changed to: ${aggressiveMode}`);
             settingsChangedForContentScript = true;
-            // Rule state might not change directly, but content script behavior will
+        }
+    } else if (message.action === 'languageChanged') {
+        // console.log("[Ad Remover BG] Language changed to:", message.language);
+        // No direct background action, but good to acknowledge. UI parts handle this.
+    } else if (message.action === 'incrementPageAdCount') {
+        // This message would come from contentScript.js
+        // We need to associate it with the sender's tab.
+        if (sender.tab && sender.tab.id) {
+            chrome.storage.local.get(`tabAdCount_${sender.tab.id}`, result => {
+                let currentTabCount = result[`tabAdCount_${sender.tab.id}`] || 0;
+                currentTabCount++;
+                let update = {};
+                update[`tabAdCount_${sender.tab.id}`] = currentTabCount;
+                chrome.storage.local.set(update);
+                // Optionally send updated count back to popup if it's open for this tab
+                 chrome.runtime.sendMessage({ action: "updatePageCount", count: currentTabCount, tabId: sender.tab.id });
+            });
+        }
+    } else if (message.action === 'resetPageAdCount') {
+         if (sender.tab && sender.tab.id) {
+            let update = {};
+            update[`tabAdCount_${sender.tab.id}`] = 0;
+            chrome.storage.local.set(update);
+            // Optionally send updated count back to popup
+            chrome.runtime.sendMessage({ action: "updatePageCount", count: 0, tabId: sender.tab.id });
         }
     }
+
 
     if (settingsChangedForRules) {
         updateBlockingRulesState();
     }
     if (settingsChangedForContentScript) {
-        // Notify content scripts about the new state (enable/disable or aggressive mode)
         const notificationMessage = message.action === 'aggressiveModeChanged' ?
             { action: 'aggressiveModeChanged', aggressive: aggressiveMode } :
             { action: extensionEnabled ? 'enable' : 'disable' };
-        notifyAllTabs(notificationMessage);
+        notifyAllTabsOfStateChange(notificationMessage);
     }
 
-    sendResponse({ status: "success", acknowledged: true });
-    return true; // Indicates that sendResponse might be called asynchronously
+    sendResponse(response);
+    return true; 
 });
 
-// Debugging listener for matched rules
+// Listen for matched rules (declarativeNetRequest)
+// IMPORTANT: This relies on the user having "Collect errors" enabled for the extension in chrome://extensions
+// for the onRuleMatchedDebug event to fire. This is not ideal for typical users.
 chrome.declarativeNetRequest.onRuleMatchedDebug.addListener((info) => {
-    if (extensionEnabled) { // Only log if the extension is active
-        // console.log(`[Ad Remover BG] Blocked by rule ${info.rule.ruleId} (ruleset: ${info.rule.rulesetId || 'dynamic'}): ${info.request.url}`);
+    if (extensionEnabled) {
+        totalBlockedThisSession++;
+        // console.log(`[Ad Remover BG] DNR Blocked by rule ${info.rule.ruleId}. Total this session: ${totalBlockedThisSession}. URL: ${info.request.url}`);
+        chrome.storage.local.set({ totalBlockedAdCount: totalBlockedThisSession });
+        // Send update to popup if it's open
+        chrome.runtime.sendMessage({ action: "updateCounters", totalBlockedAdCount: totalBlockedThisSession })
+            .catch(e => { /* Popup might not be open */ });
     }
 });
 
-// Initial load of settings when the browser starts (not just install/update)
-chrome.runtime.onStartup.addListener(() => {
-    console.log("[Ad Remover BG] Browser startup.");
-    updateStoredSettings(updateBlockingRulesState);
+// Reset page-specific ad counts when a tab is closed
+chrome.tabs.onRemoved.addListener((tabId, removeInfo) => {
+    chrome.storage.local.remove(`tabAdCount_${tabId}`);
 });
 
-// Ensure settings are loaded once when the script first runs (e.g., after enabling the extension)
+
+// Initial load of settings
 updateStoredSettings(updateBlockingRulesState);
+// Initialize totalBlockedAdCount in storage if not present from a previous session
+chrome.storage.local.get('totalBlockedAdCount', (result) => {
+    if (result.totalBlockedAdCount !== undefined) {
+        totalBlockedThisSession = result.totalBlockedAdCount;
+    } else {
+        chrome.storage.local.set({ totalBlockedAdCount: 0 });
+    }
+});

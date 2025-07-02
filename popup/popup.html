@@ -4,19 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="popup.css">
-    <title>No Ad 🚫</title>
+    <title>No Ad 🚫</title> <!-- This title is static, as it's the window title -->
 </head>
-<body class="theme-light"> <div class="container">
+<body class="theme-light">
+    <div class="container">
         <header class="header">
-            <img src="../icons/128.png" alt="Ad Remover Icon" class="logo">
+            <img src="../icons/500.png" alt="NoAd Icon" class="logo">
             <div>
-                <h1 class="title">No Ad</h1>
-                <p class="subtitle">Ads blocked. Peace restored.</p>
+                <h1 class="title" data-i18n="popupTitle">NoAd</h1>
+                <p class="subtitle" data-i18n="popupSubtitle">Ads blocked. Peace restored.</p>
             </div>
         </header>
 
         <div class="toggle-section">
-            <p class="toggle-label">Extension Status:</p>
+            <p class="toggle-label" data-i18n="popupStatusLabel">Extension Status:</p>
             <div class="toggle-switch">
                 <input type="checkbox" id="status-toggle" class="toggle-checkbox">
                 <label for="status-toggle" class="toggle-lever"></label>
@@ -24,13 +25,13 @@
         </div>
 
         <div class="stats-section">
-            <p>Blocked on this page: <span id="blocked-count">0</span></p>
-            <p>Total blocked: <span id="total-blocked-count">0</span></p>
+            <p><span data-i18n="popupBlockedOnPageLabel">Blocked on this page:</span> <span id="blocked-on-page-count">0</span></p>
+            <p><span data-i18n="popupTotalBlockedLabel">Total blocked (session):</span> <span id="total-blocked-count">0</span></p>
         </div>
 
         <div class="footer">
-            <a href="../options.html" id="settingsBtn" class="footer-link" target="_blank">⚙️ Settings</a>
-            <a href="https://github.com/EVL44/Ad-Remover" target="_blank" class="footer-link">View on GitHub</a>
+            <a href="../options.html" id="settingsBtn" class="footer-link" target="_blank" data-i18n="popupSettingsLink">⚙️ Settings</a>
+            <a href="https://github.com/EVL44/NoAd" target="_blank" class="footer-link" data-i18n="popupViewOnGitHubLink">View on GitHub</a>
         </div>
     </div>
     <script src="popup.js"></script>

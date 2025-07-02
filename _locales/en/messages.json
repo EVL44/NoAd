@@ -1,0 +1,106 @@
+{
+  "extensionName": {
+    "message": "NoAd",
+    "description": "The name of the extension."
+  },
+  "extensionDescription": {
+    "message": "Ultimate Adblocker with YouTube support ⚡. Blocks more ads, popups, and trackers.",
+    "description": "Description of the extension."
+  },
+  "popupTitle": {
+    "message": "NoAd",
+    "description": "Title in the popup header."
+  },
+  "popupSubtitle": {
+    "message": "Ads blocked. Peace restored.",
+    "description": "Subtitle in the popup header."
+  },
+  "popupStatusLabel": {
+    "message": "Extension Status:",
+    "description": "Label for the status toggle in the popup."
+  },
+  "popupBlockedOnPageLabel": {
+    "message": "Blocked on this page:",
+    "description": "Label for blocked ads on current page."
+  },
+  "popupTotalBlockedLabel": {
+    "message": "Total blocked (session):",
+    "description": "Label for total ads blocked in current session."
+  },
+  "popupSettingsLink": {
+    "message": "⚙️ Settings",
+    "description": "Link text for settings."
+  },
+  "popupViewOnGitHubLink": {
+    "message": "View on GitHub",
+    "description": "Link text for GitHub repository."
+  },
+  "optionsTitle": {
+    "message": "Ad Remover Settings",
+    "description": "Title for the options page."
+  },
+  "optionsAppearanceHeader": {
+    "message": "Appearance",
+    "description": "Header for appearance settings."
+  },
+  "optionsThemeLabel": {
+    "message": "Theme:",
+    "description": "Label for theme toggle."
+  },
+  "optionsThemeLight": {
+    "message": "Light",
+    "description": "Light theme option."
+  },
+  "optionsThemeDark": {
+    "message": "Dark",
+    "description": "Dark theme option."
+  },
+  "optionsBlockingBehaviorHeader": {
+    "message": "Blocking Behavior",
+    "description": "Header for blocking behavior settings."
+  },
+  "optionsAggressiveModeLabel": {
+    "message": "Aggressive Mode:",
+    "description": "Label for aggressive mode toggle."
+  },
+  "optionsAggressiveModeDescription": {
+    "message": "Enables more intensive ad and tracker blocking. May affect site compatibility.",
+    "description": "Description for aggressive mode."
+  },
+  "optionsLanguageHeader": {
+    "message": "Language",
+    "description": "Header for language settings."
+  },
+  "optionsLanguageSelectLabel": {
+    "message": "Select Language:",
+    "description": "Label for language selection."
+  },
+  "optionsLanguageEnglish": {
+    "message": "English",
+    "description": "English language option."
+  },
+  "optionsLanguageArabic": {
+    "message": "العربية (Arabic)",
+    "description": "Arabic language option."
+  },
+  "optionsSaveStatusSuccess": {
+    "message": "Settings saved!",
+    "description": "Success message when settings are saved."
+  },
+  "optionsSaveStatusAggressiveEnabled": {
+    "message": "Aggressive mode enabled.",
+    "description": "Message when aggressive mode is enabled."
+  },
+  "optionsSaveStatusAggressiveDisabled": {
+    "message": "Aggressive mode disabled.",
+    "description": "Message when aggressive mode is disabled."
+  },
+  "optionsSaveStatusLanguage": {
+    "message": "Language preference saved.",
+    "description": "Message when language preference is saved."
+  },
+  "popupNOLabel": {
+    "message": "N/A",
+    "description": "Not Applicable label"
+  }
+}

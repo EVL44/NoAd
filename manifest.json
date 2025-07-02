@@ -1,13 +1,16 @@
 {
   "manifest_version": 3,
-  "name": "NoAd",
-  "version": "2.1.4",
-  "description": "Ultimate Adblocker with YouTube support ⚡. Blocks more ads, popups, and trackers.",
+  "name": "__MSG_extensionName__",
+  "version": "2.2.0", 
+  "description": "__MSG_extensionDescription__",
+  "default_locale": "en",
   "permissions": [
     "storage",
     "declarativeNetRequest",
-    "declarativeNetRequestFeedback",
-    "tabs"
+    "declarativeNetRequestFeedback", 
+    "tabs",
+    "activeTab", 
+    "scripting" 
   ],
   "host_permissions": ["<all_urls>"],
   "background": {
@@ -21,17 +24,17 @@
     }]
   },
   "content_scripts": [{
-    "matches": ["*://*.youtube.com/*", "*://*.googleusercontent.com/youtube.com/1"],
+    "matches": ["*://*/*"], 
     "js": ["contentScript.js"],
     "run_at": "document_start"
   }],
   "icons": {
-    "128": "icons/128.png"
+    "500": "icons/500.png"
   },
   "action": {
     "default_popup": "popup/popup.html",
     "default_icon": {
-      "128": "icons/128.png"
+      "500": "icons/500.png"
     }
   },
   "options_page": "options.html"
