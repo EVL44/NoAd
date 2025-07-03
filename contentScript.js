@@ -1,238 +1,187 @@
+// Final, most aggressive version of contentScript.js
+
 let isEnabled = true;
 let observer;
 let adCheckInterval;
-let aggressiveMode = false; // Will be updated from storage
+let aggressiveMode = false;
 
-// More comprehensive list of YouTube ad selectors
-const YOUTUBE_AD_SELECTORS = [
-    '.ad-showing', '.video-ads', '.ytp-ad-module', '.ytp-ad-player-overlay',
-    '.ytp-ad-overlay-slot', '.ytp-ad-skip-button-container', '.ytp-ad-skip-button-modern',
-    'button.ytp-ad-skip-button-slot', '.ytp-ad-message-container',
-    'ytd-companion-slot-renderer', 'ytd-action-companion-ad-renderer',
-    'ytd-display-ad-renderer', 'ytd-promoted-video-renderer',
-    'ytd-video-masthead-ad-v3-renderer', 'ytd-in-feed-ad-layout-renderer',
-    '#player-ads', '#masthead-ad', '.ytp-ad-progress-list',
-    '.ytp-ad-hover-text-button', 'ytm-promoted-sparkles-text-search-renderer',
-    'div#movie_player.ad-interrupting', // Player when an ad is interrupting
-    '.ytp-ad-text.ytp-ad-preview-text', // "Ad" label before skip
-    '.ytp-ad-player-overlay-skip-or-preview',
-    'div.ytp-ad-image-overlay', 'div.ytp-ad-instream-overlay',
-    'ytd-engagement-panel-section-list-renderer[target-id="engagement-panel-ads"]' // Ads in engagement panel
-];
-
-// General pop-up and overlay selectors
-const POPUP_OVERLAY_SELECTORS = [
-    '[class*="popup"], [id*="popup"]',
-    '[class*="overlay"], [id*="overlay"]',
-    '[class*="modal"], [id*="modal"]',
-    '[id^="sp_message_container"]', // Common consent/ad popups
-    'div[style*="z-index: 214748364"]', // High z-index (often popups, check last digit)
-    'div[style*="z-index: 999999"]' // Another common high z-index
-];
-
-const POPUP_IFRAME_KEYWORDS = [
+// Keywords to identify ad-related domains and URLs.
+// This list is now central to the new click-interception logic.
+const AD_KEYWORDS = [
     'googleads.g.doubleclick.net', 'adservice.google.com', 'googlesyndication.com',
     'adnxs.com', 'criteo.com', 'rubiconproject.com', 'doubleclick.net',
     'popads.net', 'propellerads.com', 'adsterra.com', 'exoclick.com',
     'revcontent.com', 'mgid.com', 'outbrain.com', 'taboola.com',
     'onclickads.net', 'trafficjunky.net', 'juicyads.com', 'adtarget.com',
-    'adcash.com', 'yllix.com'
+    'adcash.com', 'yllix.com', 'ad-choices', 'ad-placement', 'popunder',
+    'click-ad', 'adserver', 'banner-ad', 'preroll', 'postitial',
+     'adthrive.com', 'media.net', 'adnimo.com',
+    'servicer.mubawab.com', 'docdrop.ink', 'extension-download.com',
+
+    'utm_source=', 'utm_medium=', 'utm_campaign=', 'ad-choices',
+    'ad-placement', 'popunder', 'click-ad', 'adserver', 'banner-ad',
+    'preroll', 'postitial', '/ads/', 'advertisement'
 ];
 
-function clickElement(element) {
-    if (element && typeof element.click === 'function' && element.offsetParent !== null) { // Check if visible
-        element.click();
-        // console.log('[Ad Remover] Clicked element:', element);
-        return true;
+// Selectors for finding and removing ad elements from the page
+const AD_ELEMENT_SELECTORS = [
+    '.ad-showing', '.video-ads', '.ytp-ad-module', '.ytp-ad-player-overlay',
+    '.ytp-ad-overlay-slot', '.ytp-ad-skip-button-container',
+    'ytd-display-ad-renderer', 'ytd-promoted-video-renderer',
+    'ytd-in-feed-ad-layout-renderer', '#player-ads', '#masthead-ad',
+    '[class*="popup"], [id*="popup"]', '[class*="overlay"], [id*="overlay"]',
+    '[class*="modal"], [id*="modal"]', 'div[id^="google_ads_"]',
+    'div[style*="position: fixed"][style*="left: 0px"][style*="top: 0px"][style*="width: 100%"][style*="height: 100%"]'
+];
+
+/**
+ * Removes an element from the page.
+ * @param {HTMLElement} element The element to remove.
+ * @param {string} reason A description for logging purposes.
+ * @param {MouseEvent} event The click event.
+ * @returns {boolean} True if the element was removed.
+ */
+
+function handleRedirectClick(event) {
+    if (!isEnabled || !aggressiveMode) {
+        return; // Only run when enabled and in aggressive mode.
     }
-    return false;
+
+    let targetElement = event.target;
+    for (let i = 0; i < 5 && targetElement; i++) {
+        const attributes = (targetElement.className + ' ' + targetElement.id).toLowerCase();
+        if (AD_INDICATORS.some(keyword => attributes.includes(keyword))) {
+            console.log(`[NoAd] Blocked click due to ad keyword in element:`, targetElement);
+            event.preventDefault();
+            event.stopPropagation();
+            return;
+        }
+        targetElement = targetElement.parentElement;
+    }
+
+    const linkElement = event.target.closest('a');
+    if (linkElement && linkElement.href) {
+        const url = linkElement.href.toLowerCase();
+        if (AD_INDICATORS.some(keyword => url.includes(keyword))) {
+            console.log(`[NoAd] Blocked click due to ad keyword in URL: ${linkElement.href}`);
+            event.preventDefault();
+            event.stopPropagation();
+            return;
+        }
+    }
 }
 
 function removeElement(element, reason = 'ad element') {
     if (element && element.parentNode) {
         element.parentNode.removeChild(element);
-        // console.log(`[Ad Remover] Removed ${reason}:`, element);
+        // console.log(`[NoAd] Removed ${reason}:`, element);
         return true;
     }
     return false;
 }
 
-function hideElementAndChildren(element, reason = 'ad element') {
-    if (element && element.style) {
-        element.style.setProperty('display', 'none', 'important');
-        element.style.setProperty('visibility', 'hidden', 'important');
-        element.style.setProperty('width', '0px', 'important');
-        element.style.setProperty('height', '0px', 'important');
-        element.style.setProperty('position', 'absolute', 'important'); // Try to collapse space
-        element.style.setProperty('opacity', '0', 'important');
-        // console.log(`[Ad Remover] Hid ${reason}:`, element);
-
-        // Also hide children that might pop back up
-        const children = element.getElementsByTagName('*');
-        for (let i = 0; i < children.length; i++) {
-            if (children[i].style) {
-                 children[i].style.setProperty('display', 'none', 'important');
-            }
-        }
-        return true;
-    }
-    return false;
-}
-
-function handleYouTubeAds() {
-    // This function is now effectively bypassed by the changes in runAdChecks for YouTube pages.
-    // Kept here for completeness, but won't be executed on YouTube.
-    let adsManipulated = 0;
-    const videoPlayer = document.querySelector('#movie_player');
-
-    YOUTUBE_AD_SELECTORS.forEach(selector => {
+/**
+ * Actively removes ad elements from the page based on the selector list.
+ */
+function runAdRemoval() {
+    AD_ELEMENT_SELECTORS.forEach(selector => {
         document.querySelectorAll(selector).forEach(el => {
-            if (selector.includes('skip-button')) {
-                if (clickElement(el)) adsManipulated++;
-            } else {
-                if (hideElementAndChildren(el, 'YouTube ad element')) adsManipulated++;
-            }
-        });
-    });
-
-    if (videoPlayer && videoPlayer.classList.contains('ad-showing')) {
-        const adVideoElements = videoPlayer.querySelectorAll('video.html5-main-video');
-        adVideoElements.forEach(video => {
-            try {
-                // All video manipulations are commented out as per previous advice
-                // if (video.volume > 0) video.volume = 0;
-                // if (video.playbackRate < 16) video.playbackRate = 16;
-                // if (!video.ended && video.duration > 0 && video.currentTime < video.duration - 0.1) {
-                //      video.currentTime = video.duration - 0.1;
-                //      adsManipulated++;
-                // }
-            } catch (e) { /* console.warn("Error manipulating YT ad video", e) */ }
-        });
-    }
-}
-
-function handlePopupsAndOverlays() {
-    let popupsRemoved = 0;
-
-    POPUP_OVERLAY_SELECTORS.forEach(selector => {
-        document.querySelectorAll(selector).forEach(el => {
-            const elText = el.textContent ? el.textContent.toLowerCase() : "";
-            const hasAdIframe = el.querySelector(POPUP_IFRAME_KEYWORDS.map(k => `iframe[src*="${k}"]`).join(', '));
-            const hasAdText = aggressiveMode && (elText.includes('advertisement') || elText.includes('close ad') || elText.includes("accept cookies"));
-
-            if (hasAdIframe || hasAdText) {
-                if (removeElement(el, 'popup/overlay element')) popupsRemoved++;
-            }
+            removeElement(el, `selector match: ${selector}`);
         });
     });
 
     document.querySelectorAll('iframe').forEach(iframe => {
-        const iframeSrc = iframe.src;
-        if (iframeSrc && POPUP_IFRAME_KEYWORDS.some(keyword => iframeSrc.includes(keyword))) {
-            const style = window.getComputedStyle(iframe);
-            if ( (style.position === 'fixed' || style.position === 'absolute') ||
-                 (parseInt(style.width, 10) < 10 && parseInt(style.height, 10) < 10) ||
-                 (parseFloat(style.opacity) < 0.1 && parseFloat(style.opacity) > 0) || // Partially transparent
-                 (style.visibility === 'hidden') ) {
-                if (removeElement(iframe, 'suspicious ad iframe')) popupsRemoved++;
-            } else if (aggressiveMode && (style.zIndex > 10000 || iframe.id === "credential_picker_iframe")) { // High z-index or specific known annoying iframes
-                if (removeElement(iframe, 'aggressive iframe removal')) popupsRemoved++;
-            }
+        const iframeSrc = iframe.src || '';
+        if (iframeSrc && AD_KEYWORDS.some(keyword => iframeSrc.includes(keyword))) {
+             removeElement(iframe, 'ad iframe');
         }
     });
 }
 
-function runAdChecks() {
-    if (!isEnabled) return;
+/**
+ * This is the new, core logic to stop redirect ads.
+ * It listens for all clicks. If a click would lead to an ad page,
+ * it stops the click from doing anything.
+ * This runs ONLY in Aggressive Mode.
+ */
+function initClickListener() {
+    document.addEventListener('click', (event) => {
+        // This logic only runs if the extension is enabled AND in aggressive mode
+        if (!isEnabled || !aggressiveMode) {
+            return;
+        }
 
-    // *** MODIFICATION START ***
-    // If on YouTube, do almost nothing to ensure video playback.
-    // This check relies on your manifest.json matching YouTube correctly
-    // and this hostname check being accurate for YouTube.
-    if (window.location.hostname.includes('youtube.com')) {
-        // console.log('[Ad Remover] YouTube detected, content script is mostly passive on this page.');
-        // We are not calling handleYouTubeAds() or handlePopupsAndOverlays() on YouTube.
-        return; // Exit the function, so no ad/popup handling occurs on YouTube from here.
-    }
-    // *** MODIFICATION END ***
+        // Find the link (<a> tag) that was clicked, if any
+        const link = event.target.closest('a');
+        if (!link || !link.href) {
+            return; // Not a link click, do nothing
+        }
 
-    // For other sites, continue as normal
-    handlePopupsAndOverlays(); // Only call this for non-YouTube sites
+        // Check if the link's destination URL contains any of our ad keywords
+        const isAdLink = AD_KEYWORDS.some(keyword => link.href.includes(keyword));
+
+        if (isAdLink) {
+            console.log(`[NoAd] Blocked a redirect ad click to: ${link.href}`);
+            // Stop the click! This prevents the new tab from opening.
+            event.preventDefault();
+            event.stopPropagation();
+        }
+    }, true); // The 'true' is crucial - it captures the click before the website can.
 }
+
 
 function initAdBlocking() {
     if (!isEnabled) {
         if (observer) observer.disconnect();
         if (adCheckInterval) clearInterval(adCheckInterval);
-        adCheckInterval = null;
+        document.addEventListener('click', handleRedirectClick, true);
         return;
     }
 
-    runAdChecks();
+    // Run the ad removal logic immediately
+    runAdRemoval();
 
+    // Set up an observer to watch for new elements being added to the page
     if (!observer) {
-        observer = new MutationObserver((mutationsList) => {
-            // If on YouTube, the observer will still run, but runAdChecks() will exit early.
-            for (const mutation of mutationsList) {
-                if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-                    runAdChecks();
-                    return;
-                }
-                if (mutation.type === 'attributes') {
-                    if (mutation.target && mutation.target.classList && mutation.target.classList.contains('ad-showing') || mutation.attributeName === 'style') {
-                        runAdChecks();
-                        return;
-                    }
-                }
-            }
-        });
+        observer = new MutationObserver(runAdRemoval);
     }
     observer.observe(document.documentElement, {
         childList: true,
         subtree: true,
-        attributes: true,
-        attributeFilter: ['style', 'class', 'hidden', 'id', 'src', 'data-display-style']
     });
 
+    // Also run the removal logic on a timer, just in case the observer misses something
     if (adCheckInterval) clearInterval(adCheckInterval);
-    adCheckInterval = setInterval(runAdChecks, aggressiveMode ? 1200 : 2800);
+    adCheckInterval = setInterval(runAdRemoval, aggressiveMode ? 1000 : 2500);
 }
 
+// === SCRIPT INITIALIZATION ===
+
+// Listen for messages from the background script or popup
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === 'enable' || message.action === 'disable') {
         isEnabled = message.action === 'enable';
-        if (isEnabled) {
-            chrome.storage.local.get('adRemoverAggressiveMode', result => {
-                aggressiveMode = result.adRemoverAggressiveMode === true;
-                initAdBlocking();
-            });
-        } else {
-            if (observer) observer.disconnect();
-            if (adCheckInterval) clearInterval(adCheckInterval);
-            adCheckInterval = null;
-        }
-        sendResponse({status: `Content script ${isEnabled ? 'enabled' : 'disabled'}`});
+        initAdBlocking();
     } else if (message.action === 'aggressiveModeChanged') {
         aggressiveMode = message.aggressive;
-        if (isEnabled) {
-            if (observer) observer.disconnect();
-            if (adCheckInterval) clearInterval(adCheckInterval);
-            observer = null;
-            adCheckInterval = null;
-            initAdBlocking();
-        }
-        sendResponse({status: "Aggressive mode updated in content script"});
+        initAdBlocking(); // Re-initialize to apply new interval speed
     }
+    sendResponse({status: "Content script updated"});
     return true;
 });
 
+// Get the initial settings from storage when the page loads
 chrome.storage.local.get(['adRemoverEnabled', 'adRemoverAggressiveMode'], result => {
     isEnabled = result.adRemoverEnabled !== undefined ? result.adRemoverEnabled : true;
     aggressiveMode = result.adRemoverAggressiveMode === true;
 
+    // Start the click listener immediately. It will self-disable if not in aggressive mode.
+    initClickListener();
+
     if (isEnabled) {
+        // Start the ad blocking if the page is ready
         if (document.readyState === "loading") {
-            document.addEventListener("DOMContentLoaded", initAdBlocking, { once: true });
+            document.addEventListener("DOMContentLoaded", initAdBlocking);
         } else {
             initAdBlocking();
         }

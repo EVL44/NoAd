@@ -220,8 +220,44 @@
     "condition": { "urlFilter": "*&ad_type=", "resourceTypes": ["xmlhttprequest", "sub_frame", "ping"] }
   },
   {
-    "id": 210, "priority": 1, "action": { "type": "block" },
-    "condition": { "urlFilter": "*banner cooperation*", "domainTypes": ["thirdParty"], "resourceTypes": ["sub_frame", "script"]}
+    "id": 210,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": {
+      "urlFilter": "*banner cooperation*",
+      "domainTypes": ["thirdParty"],
+      "resourceTypes": ["sub_frame", "script"]
+    }
+  },
+  {
+    "id": 211,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": { "urlFilter": "*ad-choices*", "resourceTypes": ["script", "sub_frame"] }
+  },
+  {
+    "id": 212,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": { "urlFilter": "*ad-placement*", "resourceTypes": ["script", "sub_frame"] }
+  },
+  {
+    "id": 213,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": { "urlFilter": "*popunder*", "resourceTypes": ["script", "sub_frame"] }
+  },
+  {
+    "id": 214,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": { "urlFilter": "*click-ad*", "resourceTypes": ["script", "sub_frame"] }
+  },
+  {
+    "id": 215,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": { "urlFilter": "*adserver*", "resourceTypes": ["script", "image", "sub_frame", "ping"] }
   },
   {
     "id": 300, "priority": 1, "action": { "type": "block" },
@@ -254,5 +290,71 @@
   {
     "id": 307, "priority": 1, "action": { "type": "block" },
     "condition": { "urlFilter": "||appnexus.com^", "resourceTypes": ["script", "image", "sub_frame", "xmlhttprequest", "ping"] }
+  },
+  {
+    "id": 401,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": { "urlFilter": "||adthrive.com^", "resourceTypes": ["script", "sub_frame"] }
+  },
+  {
+    "id": 402,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": { "urlFilter": "||adnimo.com^", "resourceTypes": ["script", "sub_frame"] }
+  },
+  {
+    "id": 403,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": { "urlFilter": "||media.net^", "resourceTypes": ["script", "sub_frame"] }
+  },
+  {
+    "id": 404,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": { "urlFilter": "*utm_source*", "resourceTypes": ["sub_frame", "ping", "image"] }
+  },
+  {
+    "id": 501,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": { "urlFilter": "||adthrive.com^", "resourceTypes": ["script", "sub_frame", "ping"] }
+  },
+  {
+    "id": 502,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": { "urlFilter": "||adnimo.com^", "resourceTypes": ["script", "sub_frame", "ping"] }
+  },
+  {
+    "id": 503,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": { "urlFilter": "||media.net^", "resourceTypes": ["script", "sub_frame", "ping"] }
+  },
+  {
+    "id": 504,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": { "urlFilter": "*utm_source*", "resourceTypes": ["sub_frame", "ping", "image", "script"] }
+  },
+  {
+    "id": 505,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": { "urlFilter": "||servicer.mubawab.com^", "resourceTypes": ["script", "sub_frame", "ping", "xmlhttprequest"] }
+  },
+  {
+    "id": 506,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": { "urlFilter": "||docdrop.ink^", "resourceTypes": ["script", "sub_frame"] }
+  },
+  {
+    "id": 508,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": { "urlFilter": "||extension-download.com^", "resourceTypes": ["script", "sub_frame", "ping", "xmlhttprequest"] }
   }
 ]

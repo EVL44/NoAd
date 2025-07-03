@@ -1,113 +1,122 @@
+
+/**
+ * Fetches the correct language file (messages.json), parses it,
+ * and applies the translations to the popup's HTML.
+ * @param {string} lang - The language code (e.g., 'en', 'ar').
+ */
+async function loadAndApplyTranslations(lang) {
+    // Set HTML lang and dir attributes for proper text rendering (e.g., RTL for Arabic)
+    document.documentElement.lang = lang;
+    document.body.dir = (lang === 'ar') ? 'rtl' : 'ltr';
+
+    try {
+        // Fetch the correct language file from the _locales directory
+        const messagesUrl = chrome.runtime.getURL(`/_locales/${lang}/messages.json`);
+        const response = await fetch(messagesUrl);
+
+        // If the language file isn't found, default to English
+        if (!response.ok) {
+            console.error(`Could not load translations for language: "${lang}". Falling back to 'en'.`);
+            if (lang !== 'en') {
+                loadAndApplyTranslations('en');
+            }
+            return;
+        }
+
+        const messages = await response.json();
+
+        // Find all elements with a 'data-i18n' attribute and apply the translation
+        document.querySelectorAll('[data-i18n]').forEach(element => {
+            const messageKey = element.getAttribute('data-i18n');
+            if (messages[messageKey]) {
+                // Use the 'message' property from the JSON file
+                element.textContent = messages[messageKey].message;
+            } else {
+                console.warn(`Translation key "${messageKey}" not found for language "${lang}".`);
+            }
+        });
+    } catch (error) {
+        console.error('Error loading or applying translations:', error);
+    }
+}
+
+
 document.addEventListener('DOMContentLoaded', function () {
     const statusToggle = document.getElementById('status-toggle');
     const blockedOnPageEl = document.getElementById('blocked-on-page-count');
     const totalBlockedCountEl = document.getElementById('total-blocked-count');
 
-    // Function to apply translations
-    function applyTranslations() {
-        document.querySelectorAll('[data-i18n]').forEach(element => {
-            const messageKey = element.getAttribute('data-i18n');
-            const translatedText = chrome.i18n.getMessage(messageKey);
-            if (translatedText) {
-                // For elements like <h1>, <p>, <a>, it's usually textContent
-                // For elements that might contain other elements (like the stats labels),
-                // we might need to be more careful or ensure data-i18n is on the innermost text node wrapper.
-                // Here, we assume simple text replacement.
-                if (element.tagName === 'A' || element.tagName === 'BUTTON' || element.tagName === 'LABEL' || element.tagName === 'P' || element.tagName === 'H1' || element.tagName === 'SPAN') {
-                    element.textContent = translatedText;
-                } else {
-                     // Fallback or specific handling if needed
-                    element.innerHTML = translatedText; // Use innerHTML if the message might contain simple HTML tags (though generally not recommended for i18n messages)
-                }
-            }
-        });
-        // For the window title, it's a bit trickier as it's outside the body.
-        // document.title = chrome.i18n.getMessage("popupTitle") || "NoAd"; // This won't work for popup title
-    }
+    // Load initial state from storage
+    chrome.storage.local.get(
+        ['adRemoverEnabled', 'adRemoverTheme', 'adRemoverLanguage', 'totalBlockedAdCount', 'currentPageAdCount'],
+        function (result) {
+            // Set the toggle to the saved state (or true by default)
+            const isEnabled = result.adRemoverEnabled !== undefined ? result.adRemoverEnabled : true;
+            statusToggle.checked = isEnabled;
 
+            // Apply the saved theme (or 'light' by default)
+            const theme = result.adRemoverTheme || 'light';
+            document.body.classList.remove('theme-light', 'theme-dark');
+            document.body.classList.add(`theme-${theme}`);
 
-    // Load initial state, theme, and apply translations
-    chrome.storage.local.get(['adRemoverEnabled', 'adRemoverTheme', 'adRemoverLanguage', 'totalBlockedAdCount', 'currentPageAdCount'], function (result) {
-        const isEnabled = result.adRemoverEnabled !== undefined ? result.adRemoverEnabled : true;
-        statusToggle.checked = isEnabled;
+            // Determine the language to use
+            const lang = result.adRemoverLanguage || navigator.language.split('-')[0] || 'en';
+            // Load and apply the translations for the determined language
+            loadAndApplyTranslations(lang);
 
-        const theme = result.adRemoverTheme || 'light';
-        document.body.classList.remove('theme-light', 'theme-dark');
-        document.body.classList.add(`theme-${theme}`);
-        
-        const lang = result.adRemoverLanguage || navigator.language.split('-')[0] || 'en';
-        // Set HTML lang attribute for proper text rendering (e.g., RTL for Arabic)
-        document.documentElement.lang = lang;
-        if (lang === 'ar') {
-            document.body.dir = 'rtl';
-        } else {
-            document.body.dir = 'ltr';
+            // Update the ad counter displays
+            updateBlockedCounts(result.currentPageAdCount, result.totalBlockedAdCount);
         }
-        applyTranslations(); // Apply translations after setting language direction
+    );
 
-        updateBlockedCounts(result.currentPageAdCount, result.totalBlockedAdCount);
-    });
-
+    // Add listener for the enable/disable toggle
     statusToggle.addEventListener('change', function () {
         const newState = statusToggle.checked;
-        chrome.storage.local.set({ adRemoverEnabled: newState }, () => {
-            chrome.runtime.sendMessage({ action: newState ? 'enable' : 'disable' });
-            // No need to message all tabs from popup; background script handles enabling/disabling rules and content scripts
-            console.log(`Ad Remover ${newState ? 'enabled' : 'disabled'}`);
-        });
+        chrome.storage.local.set({ adRemoverEnabled: newState });
+        // Send a message to the background script to update the blocking rules
+        chrome.runtime.sendMessage({ action: newState ? 'enable' : 'disable' });
     });
 
+    // Function to update the displayed ad counts
     function updateBlockedCounts(pageCount, totalCount) {
-        const notApplicable = chrome.i18n.getMessage("popupNOLabel") || "N/A";
-        if (blockedOnPageEl) {
-            // If pageCount is from the active tab and is a number, display it. Otherwise, N/A.
-            blockedOnPageEl.textContent = (typeof pageCount === 'number') ? pageCount.toString() : notApplicable;
-        }
-        if (totalBlockedCountEl) {
-            totalBlockedCountEl.textContent = totalCount || '0';
-        }
+        // If there's no page count, display "N/A"
+        blockedOnPageEl.textContent = (typeof pageCount === 'number') ? pageCount.toString() : 'N/A';
+        totalBlockedCountEl.textContent = totalCount || '0';
     }
-    
-    // Listen for updates from background script or content script
+
+    // Listen for messages from other parts of the extension to update the UI
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         if (message.action === "updateCounters") {
             if (message.hasOwnProperty('totalBlockedAdCount')) {
-                 chrome.storage.local.set({ totalBlockedAdCount: message.totalBlockedAdCount });
-                 if (totalBlockedCountEl) totalBlockedCountEl.textContent = message.totalBlockedAdCount.toString();
-            }
-            // For page-specific count, it's better if the content script of the active tab sends it
-            // or if the background script can associate it with the tab opening the popup.
-            // This example assumes background script might send it.
-            if (message.hasOwnProperty('currentPageAdCount')) {
-                 chrome.storage.local.set({ currentPageAdCount: message.currentPageAdCount });
-                 if (blockedOnPageEl) blockedOnPageEl.textContent = message.currentPageAdCount.toString();
+                chrome.storage.local.set({ totalBlockedAdCount: message.totalBlockedAdCount });
+                totalBlockedCountEl.textContent = message.totalBlockedAdCount.toString();
             }
         } else if (message.action === "updatePageCount") {
-            // Sent from content script of the active tab
-             if (blockedOnPageEl) blockedOnPageEl.textContent = message.count.toString();
-             chrome.storage.local.set({ currentPageAdCount: message.count });
-
+            blockedOnPageEl.textContent = message.count.toString();
+            chrome.storage.local.set({ currentPageAdCount: message.count });
+        } else if (message.action === 'languageChanged') {
+            // If the language is changed from the options page, reload translations
+            loadAndApplyTranslations(message.language);
         }
+        return true; // Keep the message channel open for asynchronous response
     });
 
-    // Request current counts when popup opens
+    // When the popup opens, request the latest counts
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         if (tabs[0] && tabs[0].id) {
-            // Ask content script of active tab for its current page count
+            // Ask the content script of the active tab for its ad count
             chrome.tabs.sendMessage(tabs[0].id, { action: "getCounts" })
                 .catch(e => {
-                    // console.warn("Could not request page count from active tab, it might be a restricted page or not have content script.", e);
-                    // If content script doesn't respond, rely on stored value or show N/A
-                     chrome.storage.local.get('currentPageAdCount', result => {
-                        const notApplicable = chrome.i18n.getMessage("popupNOLabel") || "N/A";
-                        if (blockedOnPageEl) blockedOnPageEl.textContent = (typeof result.currentPageAdCount === 'number') ? result.currentPageAdCount.toString() : notApplicable;
-                     });
+                    // Content script may not be running on this page (e.g., chrome:// pages)
+                    // In that case, just use the value from storage
+                    chrome.storage.local.get('currentPageAdCount', result => {
+                        updateBlockedCounts(result.currentPageAdCount, undefined);
+                    });
                 });
         }
-         // Also get total count from storage (updated by background)
+        // Get the total count from storage, which is managed by the background script
         chrome.storage.local.get('totalBlockedAdCount', result => {
-            if (totalBlockedCountEl) totalBlockedCountEl.textContent = result.totalBlockedAdCount || '0';
+             if (totalBlockedCountEl) totalBlockedCountEl.textContent = result.totalBlockedAdCount || '0';
         });
     });
-
 });
